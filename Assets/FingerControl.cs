@@ -1,68 +1,49 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 
 public class FingerControl : MonoBehaviour
 {
-    public Transform[] pinkyBones; // Array of pinky finger's joint transforms
-    public float rotationSpeed = 30f;
-
-    private Quaternion[] initialRotations; // Store initial rotations for the pinky
+    // [SerializeField] private float rotationSpeed = 30f;
+    [SerializeField] private TwoBoneIKConstraint rightPinky;
 
     void Start()
     {
-        StoreInitialRotations();
     }
+
+    // void Update()
+    // {
+    //     HandleFingerInput();
+    // }
+
+    // Check if the semicolon key is pressed
+    public float easingSpeed = 2.0f; // Speed at which the weight transitions
 
     void Update()
     {
-        HandleFingerInput();
-    }
-
-    void StoreInitialRotations()
-    {
-        initialRotations = new Quaternion[pinkyBones.Length];
-        for (int i = 0; i < pinkyBones.Length; i++)
+        if (Input.GetKey(KeyCode.Semicolon))
         {
-            initialRotations[i] = pinkyBones[i].localRotation;
+            rightPinky.weight = Mathf.MoveTowards(rightPinky.weight, 1.0f, easingSpeed * Time.deltaTime);
+        }
+        else
+        {
+            rightPinky.weight = Mathf.MoveTowards(rightPinky.weight, 0.0f, easingSpeed * Time.deltaTime);
         }
     }
 
     void HandleFingerInput()
     {
-        // Control pinky with the home row keys
-        if (Input.GetKey(KeyCode.P)) // Pinky
+        // Left Pinky
+        if (Input.GetKey(KeyCode.L)) 
         {
-            RotateFinger(pinkyBones, Input.GetAxis("Vertical") * rotationSpeed, -90f, 0f);
+            rightPinky.weight = 1;
         }
 
-        // Release the key to return pinky to initial position
-        if (Input.GetKeyUp(KeyCode.P))
+        
+        if (Input.GetKeyUp(KeyCode.L))
         {
-            ResetFinger(pinkyBones, initialRotations);
-        }
-    }
-
-    void RotateFinger(Transform[] bones, float rotationAmount, float minAngle, float maxAngle)
-    {
-        foreach (Transform bone in bones)
-        {
-            // Calculate the new rotation angle
-            float newAngle = bone.localRotation.eulerAngles.x + rotationAmount * Time.deltaTime;
-
-            // Apply rotation within the specified limits
-            newAngle = Mathf.Clamp(newAngle, minAngle, maxAngle);
-
-            // Apply the new rotation
-            bone.localRotation = Quaternion.Euler(newAngle, 0f, 0f);
-        }
-    }
-
-    void ResetFinger(Transform[] bones, Quaternion[] initialRotations)
-    {
-        for (int i = 0; i < bones.Length; i++)
-        {
-            bones[i].localRotation = Quaternion.Lerp(bones[i].localRotation, initialRotations[i], Time.deltaTime * rotationSpeed);
+            rightPinky.weight = 0;
         }
     }
 }
